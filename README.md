@@ -1,4 +1,6 @@
 # ADR-Copilot
+- ADR Automation Agent
+- Automates drafting, validating, and committing ADRs with diagrams.
 
 ## Custom GPT Agent – Project Structure
 
