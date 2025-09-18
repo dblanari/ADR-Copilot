@@ -19,6 +19,11 @@ This repository is a **best-practice scaffold** for creating and tracking a Cust
 - `src/` – Example client and utilities (`auth.py`, `logging.py`).
 - `evaluations/` – Datasets, run logs, and reports for reproducible testing.
 - `governance/` – CSV logs for registry, prompt changes, evals, and incidents.
+- `business/` – Business analysis artifacts:
+    - `ba_overview.md`: Goals, scope, stakeholders, risks
+    - `user_stories.md`: High-level user stories
+    - `non_functional.md`: NFRs (latency, cost, privacy, availability)
+    - `requirements.feature`: Acceptance criteria in Given/When/Then format
 - `scripts/` – Automation helpers (diagram rendering, metric export).
 - `tests/` – Optional unit/integration tests.
 - `.gitignore`, `LICENSE`, `README.md` – Repo hygiene.

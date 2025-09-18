@@ -1,7 +1,291 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: GitHub-like API
-  version: "1.0.0"
+  title: GitHub PR & Code Access
+  version: 1.0.0
+  description: Minimal endpoints to create/merge pull requests and read/write files via GitHub REST API.
 servers:
   - url: https://api.github.com
-paths: {}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    AnyObject:
+      type: object
+      description: A generic JSON object.
+      additionalProperties: {}
+    AnyObjectArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/AnyObject"
+    CreatePullRequestRequest:
+      type: object
+      required:
+        - title
+        - head
+        - base
+      properties:
+        title:
+          type: string
+        head:
+          type: string
+          description: Branch with your changes
+        base:
+          type: string
+          description: Branch to merge into
+        body:
+          type: string
+        draft:
+          type: boolean
+    MergePullRequestRequest:
+      type: object
+      properties:
+        commit_title:
+          type: string
+        commit_message:
+          type: string
+        merge_method:
+          type: string
+          enum:
+            - merge
+            - squash
+            - rebase
+        sha:
+          type: string
+    CreateOrUpdateFileRequest:
+      type: object
+      required:
+        - message
+        - content
+      properties:
+        message:
+          type: string
+        content:
+          type: string
+          description: Base64-encoded file content
+        branch:
+          type: string
+        sha:
+          type: string
+          description: Required for update
+    CreateRefRequest:
+      type: object
+      required:
+        - ref
+        - sha
+      properties:
+        ref:
+          type: string
+          description: refs/heads/my-branch
+        sha:
+          type: string
+          description: SHA1 commit id
+security:
+  - bearerAuth: []
+paths:
+  /user:
+    get:
+      operationId: getAuthenticatedUser
+      summary: Get the authenticated user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: X-GitHub-Api-Version
+          required: true
+          schema:
+            type: string
+          example: 2022-11-28
+        - in: header
+          name: Accept
+          required: true
+          schema:
+            type: string
+          example: application/vnd.github+json
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+  /repos/{owner}/{repo}/pulls:
+    post:
+      operationId: createPullRequest
+      summary: Create a pull request
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePullRequestRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+  /repos/{owner}/{repo}/pulls/{pull_number}:
+    get:
+      operationId: getPullRequest
+      summary: Get a pull request
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: pull_number
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+    put:
+      operationId: mergePullRequest
+      summary: Merge a pull request
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: pull_number
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePullRequestRequest"
+      responses:
+        "200":
+          description: Merged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+  /repos/{owner}/{repo}/contents/{path}:
+    get:
+      operationId: getRepositoryContent
+      summary: Get repository content
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+    put:
+      operationId: createOrUpdateFileContents
+      summary: Create or update file
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateFileRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
+  /repos/{owner}/{repo}/git/refs:
+    post:
+      operationId: createRef
+      summary: Create a reference (branch)
+      parameters:
+        - in: path
+          name: owner
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: repo
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRefRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnyObject"
