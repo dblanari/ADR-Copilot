@@ -1,8 +1,24 @@
-
 # Business Analysis Overview
-- **Goal:** Reduce average ticket handle time for payment status requests by 30%.
-- **Scope:** Read-only lookups; no refunds or account changes.
-- **Stakeholders:** Support, Payments, Compliance, Security.
-- **Success Metrics:** CSAT ≥ 4.6/5, p95 latency ≤ 2s, refusal precision ≥ 0.95.
-- **Risks:** PII exposure, hallucinations, policy drift.
-- **Mitigations:** Guardrail prompts, NFRs, weekly evals, incident triage workflow.
+
+- **Goal:** Automate the creation and maintenance of Architectural Decision Records (ADRs) to improve architectural traceability, consistency, and decision quality. Reduce manual effort and average ticket handle time for architecture-related queries by 30%.
+- **Scope:** 
+  - Automate drafting, validation, and lifecycle management of ADRs using signals from emails, chat, meetings, issue trackers, PRs, and RFCs.
+  - Output ADRs in MADR format with strict section adherence.
+  - Support C4 diagram generation and GitHub workflow integration (branching, PRs, tagging).
+  - Read-only for existing ADRs; never overwrite, only supersede.
+- **Stakeholders:** Architecture Team, Engineering, Compliance, Security, DevOps.
+- **Success Metrics:** 
+  - ≥95% ADRs pass validation (drivers, options, decision, consequence, traceability).
+  - Average ADR drafting time reduced by 50%.
+  - CSAT ≥ 4.6/5 for architecture team.
+  - p95 ADR automation latency ≤ 2 minutes.
+- **Risks:** 
+  - Incomplete or ambiguous source signals.
+  - PII or secret leakage in ADRs.
+  - Non-compliance with MADR rigor.
+  - Policy drift or untracked supersessions.
+- **Mitigations:** 
+  - Explicit gap indication and user clarification workflow.
+  - Guardrail prompts and NFR enforcement.
+  - Automated validation and weekly audits.
+  - Incident triage and rollback workflow.
