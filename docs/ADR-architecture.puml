@@ -1,0 +1,42 @@
+@startuml ADR_Automation_SystemContext
+!define C4P https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!includeurl C4P/C4_Context.puml
+
+' People
+Person(dev, "Developer/Architect", "Authors & reviewers of ADRs")
+Person(lead, "Engineering Lead", "Approves decisions")
+Person(sec, "Security/Governance", "Validates compliance")
+System_Ext(email, "Email (O365/Gmail)", "Threads with decision signals")
+System_Ext(chat, "Chat (Slack/Teams)", "Channels, threads, huddles, recap")
+System_Ext(meet, "Meetings (Teams/Zoom/Meet)", "Transcripts & AI summaries")
+System_Ext(tracker, "Issue Tracker (Jira/ADO)", "Tickets & RFCs")
+System_Ext(confluence, "Confluence", "Wiki (optional mirror)")
+System_Ext(portal, "Backstage", "Developer portal")
+System_Ext(gh, "GitHub", "Repo, PRs, Actions")
+
+' System
+System_Boundary(adrsys, "ADR Automation System") {
+  System(agent, "ADR Agent (GPT-based)", "Classify, extract, draft ADR, open PR")
+  SystemDb(repo, "GitHub Repo (docs/adr)", "Markdown ADRs (source of truth)")
+  System(ci, "ADR CI Pipeline", "Lint, TOC, link-check, site preview")
+  System(site, "ADR Site (static)", "Published ADR catalog (optional)")
+}
+
+' Relationships
+Rel(dev, agent, "Submits prompts / triggers draft")
+Rel(agent, email, "Ingests", "API/IMAP/webhooks")
+Rel(agent, chat, "Ingests", "APIs / events")
+Rel(agent, meet, "Ingests transcripts", "APIs / exports")
+Rel(agent, tracker, "Links tickets/RFCs", "REST")
+Rel(agent, repo, "Creates/updates ADR (*.md)", "Git API")
+Rel(agent, gh, "Opens PRs", "REST/GraphQL")
+Rel(ci, repo, "Watches changes")
+Rel(ci, gh, "Reports checks")
+Rel(ci, site, "Builds/publishes")
+Rel(portal, site, "Displays ADRs", "iframe/plugin")
+Rel(dev, gh, "Reviews PRs")
+Rel(lead, gh, "Approves PRs")
+Rel(sec, gh, "Checks policy")
+Rel(site, confluence, "Optional sync", "API/CI")
+
+@enduml

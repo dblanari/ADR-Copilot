@@ -1,0 +1,17 @@
+@startuml
+title Custom GPT Agent - High Level
+actor User
+rectangle "Custom GPT" {
+  [System Prompt]
+  [Knowledge Base]
+  [Tools/Actions]
+}
+rectangle "External APIs" {
+  [OpenAPI Spec(s)]
+  [OAuth/Bearer Auth]
+}
+User --> "Custom GPT": Chat
+"Custom GPT" --> "External APIs": HTTPS (OpenAPI)
+"External APIs" --> "Custom GPT": JSON
+"Custom GPT" --> User: Answer
+@enduml
