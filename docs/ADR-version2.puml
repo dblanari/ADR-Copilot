@@ -7,13 +7,12 @@ package "Producers / Sources" {
   [Jira] as JIRA
   [Git / CI] as GIT
   [Docs / Wikis] as DOCS
-  [Observability] as OBS
 }
 
 component "Input Gateway API" as GATEWAY
-component "Message Bus\n(Kafka/SQS)" as BUS
-component "Ingestion & Embedding\n(chunk, embed, redact)" as INGEST
-database "Vector DB\n(Pinecone/Weaviate/pgvector)" as VDB
+component "Topic (Kafka)" as BUS
+component "Ingestion & Embedding\n(chunk, embed)" as INGEST
+database "Vector DB\n(Pinecone/Weaviate/Chroma)" as VDB
 database "Metadata Store\n(PostgreSQL)" as SQL
 component "ADR Trigger Service\n(rules + classifier + OPA)" as TRIGGER
 component "Retrieval Service\n(Vector kNN + filters + re-ranker)" as RETR
@@ -27,7 +26,6 @@ component "Search UI\n(Hybrid BM25+Vector)" as SEARCH
 JIRA --> GATEWAY
 GIT --> GATEWAY
 DOCS --> GATEWAY
-OBS --> GATEWAY
 
 GATEWAY --> BUS
 BUS --> INGEST
