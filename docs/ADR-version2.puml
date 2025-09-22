@@ -18,9 +18,8 @@ component "ADR Trigger Service\n(rules + classifier + OPA)" as TRIGGER
 component "Retrieval Service\n(Vector kNN + filters + re-ranker)" as RETR
 component "LLM Orchestrator\n(ADR Generator)" as LLM
 component "Workflow Engine\n(Temporal/Cadence)" as WF
-node "Reviewer UI\n(GitHub Web UI)" as UI
+node "Review UI\n(GitHub Web UI)" as REVIEW_UI
 component "Notifications\n(Email/Teams)" as NOTIF
-node "Versioned Repo\n(Git)" as GITREPO
 
 JIRA --> GATEWAY
 GIT --> GATEWAY
@@ -44,10 +43,9 @@ RETR --> LLM : Context Pack
 LLM --> WF : Draft ADR + Evidence
 
 ' Human-in-the-loop
-WF --> UI : task: review draft (GitHub PR)
-UI --> WF : approve / reject (GitHub review)
-WF --> GITREPO : publish ADR (markdown)
-GITREPO --> VDB : index ADR
+WF --> REVIEW_UI : task: review draft (GitHub PR)
+REVIEW_UI --> WF : approve / reject (GitHub review)
+WF --> VDB : index ADR (on approval)
 
 ' Notifications
 WF --> NOTIF : review requested / published
