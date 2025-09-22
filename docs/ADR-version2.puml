@@ -1,0 +1,59 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam wrapWidth 200
+title ADR Automation – High-level Components
+
+package "Producers / Sources" {
+  [Jira] as JIRA
+  [Git / CI] as GIT
+  [Docs / Wikis] as DOCS
+  [Observability] as OBS
+}
+
+component "Input Gateway API" as GATEWAY
+component "Message Bus\n(Kafka/SQS)" as BUS
+component "Ingestion & Embedding\n(chunk, embed, redact)" as INGEST
+database "Vector DB\n(Pinecone/Weaviate/pgvector)" as VDB
+database "Metadata Store\n(PostgreSQL)" as SQL
+component "ADR Trigger Service\n(rules + classifier + OPA)" as TRIGGER
+component "Retrieval Service\n(Vector kNN + filters + re-ranker)" as RETR
+component "LLM Orchestrator\n(ADR Generator)" as LLM
+component "Workflow Engine\n(Temporal/Cadence)" as WF
+node "Reviewer UI\n(Web App)" as UI
+component "Notifications\n(Email/Teams)" as NOTIF
+node "Versioned Repo\n(Git)" as GITREPO
+component "Search UI\n(Hybrid BM25+Vector)" as SEARCH
+
+JIRA --> GATEWAY
+GIT --> GATEWAY
+DOCS --> GATEWAY
+OBS --> GATEWAY
+
+GATEWAY --> BUS
+BUS --> INGEST
+INGEST --> VDB
+INGEST --> SQL
+
+' Triggers on events or labels
+BUS --> TRIGGER
+TRIGGER --> WF : create ADR proposal
+
+' Retrieval and generation path
+TRIGGER --> RETR : Decision Intent
+RETR --> VDB : vector search
+RETR --> SQL : metadata filters
+RETR --> LLM : Context Pack
+
+LLM --> WF : Draft ADR + Evidence
+
+' Human-in-the-loop
+WF --> UI : task: review draft
+UI --> WF : approve / reject
+WF --> GITREPO : publish ADR (markdown)
+GITREPO --> VDB : index ADR
+SEARCH --> VDB
+UI --> SEARCH
+
+' Notifications
+WF --> NOTIF : review requested / published
+@enduml

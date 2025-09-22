@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: Custom GPT Integration API
+  version: 1.1.0
+servers:
+  - url: https://epson-mere-sin-impacts.trycloudflare.com
+paths:
+  /putPrompt:
+    post:
+      operationId: putPrompt
+      summary: Enqueue a new prompt for processing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutPromptRequest"
+      responses:
+        "200":
+          description: Prompt accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PutPromptResponse"
+
+  /getPrompt:
+    get:
+      operationId: getPrompt
+      summary: Lease a prompt to process
+      parameters:
+        - in: query
+          name: leaseSeconds
+          schema: { type: integer, minimum: 10, maximum: 600, default: 120 }
+          description: Lease duration (seconds)
+      responses:
+        "200":
+          description: Prompt available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptEnvelope"
+        "204":
+          description: No prompt available
+
+  /postResponse:
+    post:
+      operationId: postResponse
+      summary: Submit a response for a leased task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponseEnvelope"
+      responses:
+        "200":
+          description: Response accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  version:
+                    type: string
+
+components:
+  schemas:
+    PutPromptRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+        meta:
+          type: object
+          additionalProperties: true
+        dedupeKey:
+          type: string
+        taskId:
+          type: string
+    PutPromptResponse:
+      type: object
+      required: [taskId, dedupeKey]
+      properties:
+        taskId:
+          type: string
+        dedupeKey:
+          type: string
+    PromptEnvelope:
+      type: object
+      required: [taskId, prompt]
+      properties:
+        taskId:
+          type: string
+        prompt:
+          type: string
+        meta:
+          type: object
+          additionalProperties: true
+        dedupeKey:
+          type: string
+    ResponseUsage:
+      type: object
+      properties:
+        prompt_tokens: { type: integer }
+        completion_tokens: { type: integer }
+        total_tokens: { type: integer }
+    ResponseEnvelope:
+      type: object
+      required: [taskId, content]
+      properties:
+        taskId: { type: string }
+        content: { type: string }
+        usage:
+          $ref: "#/components/schemas/ResponseUsage"
+        traceId: { type: string }
+        dedupeKey: { type: string }
