@@ -9,14 +9,13 @@ This document describes the solution architecture for the ADR Automation system,
 - **Input Gateway API**: Ingests and normalizes events and data from producers.
 - **Topic (Kafka)**: Decouples producers and consumers, ensuring reliable event delivery.
 - **Ingestion & Embedding**: Processes and embeds documents for semantic retrieval.
-- **Vector DB (Pinecone/Weaviate/Chroma)**: Stores vector embeddings for semantic search.
+- **Vector DB (Pinecone/Weaviate/Chroma)**: Stores vector embeddings for semantic search and is the final destination for approved ADRs.
 - **Metadata Store (PostgreSQL)**: Stores structured metadata about ADRs.
 - **ADR Trigger Service (rules + classifier + OPA)**: Applies business rules and policies to trigger ADR proposals.
 - **Retrieval Service (Vector kNN + filters + re-ranker)**: Retrieves relevant context for ADR generation.
 - **LLM Orchestrator (ADR Generator)**: Uses LLMs to generate draft ADRs.
 - **Workflow Engine (Temporal/Cadence)**: Orchestrates the ADR lifecycle and review process.
-- **Reviewer UI (GitHub Web UI)**: Human review and approval via GitHub Pull Requests.
-- **Versioned Repo (Git)**: Stores published ADRs as markdown files.
+- **Review UI (GitHub Web UI)**: Human review and approval via GitHub Pull Requests.
 - **Notifications (Email/Teams)**: Notifies stakeholders of review and publication events.
 
 ## Workflow Summary
@@ -28,13 +27,12 @@ This document describes the solution architecture for the ADR Automation system,
 5. **Draft Generation**: LLM generates a draft ADR.
 6. **Workflow Orchestration**: Review task is created as a GitHub Pull Request.
 7. **Human Review**: Reviewers approve or reject the ADR draft in GitHub.
-8. **Publication**: Approved ADRs are published in the Git repository.
+8. **Indexing**: Approved ADRs are indexed directly into the Vector DB.
 9. **Notification**: Stakeholders are notified of review and publication status.
 
 ## Benefits
 - Automation reduces manual effort and errors.
-- All ADRs are versioned and auditable in Git.
+- All ADRs are indexed and auditable in the Vector DB.
 - Event-driven, decoupled architecture supports scalability.
 - Human-in-the-loop review ensures quality and consensus.
 - Modular design allows easy integration of new sources and policies.
-
