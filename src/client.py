@@ -87,6 +87,19 @@ class OpenAIClient:
             metadatas=[metadata or {}]
         )
 
+    def add_adr_file(self, doc_id: str, file: str, metadata: Optional[Dict[str, Any]] = None):
+        """
+        Read ADR content from a file path and store embedding (wraps add_adr_text).
+        Raises FileNotFoundError if file missing, ValueError if empty.
+        """
+        if not os.path.exists(file):
+            raise FileNotFoundError(f"File not found: {file}")
+        with open(file, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+        if not content:
+            raise ValueError(f"File is empty: {file}")
+        self.add_adr_text(doc_id=doc_id, text=content, metadata=metadata)
+
     def query_similar(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """
         Semantic similarity search against stored ADR embeddings.
@@ -130,36 +143,60 @@ class OpenAIClient:
 if __name__ == "__main__":
     # Example usage relying on environment variable
     client = OpenAIClient()
-    print(client.run_prompt("Hello, OpenAI!"))
     # Embedding usage
-    emb_vec = client.embed_text_vector("Architecture Decision Records automation")
-    print(f"Vector dims: {len(emb_vec)}")
+    # emb_vec = client.embed_text_vector("Architecture Decision Records automation")
+    # print(f"Vector dims: {len(emb_vec)}")
 
-    result = client.run_prompt_with_embedding("ADR automation agent design considerations")
-    print(f"Combined embedding dims: {result['embedding_dimensions']}")
+    # result = client.run_prompt_with_embedding("ADR automation agent design considerations")
+    # print(f"Combined embedding dims: {result['embedding_dimensions']}")
 
-    # --- Chroma demo ---
-    # client.add_adr_text(
-    #     doc_id="adr-001",
-    #     text="Decision: Adopt PostgreSQL for ADR metadata storage due to reliability and JSONB support.",
-    #     metadata={"status": "Accepted", "category": "storage"}
+    # client.add_adr_file(
+    #     doc_id="Exploration_Document-001",
+    #     file="/Users/denisblanari/work/code/ADR-Copilot/adr/adr-supporting/ADR003/Exploration_Document.md",
+    #     metadata={"status": "completed", "category": "document"}
     # )
-    # client.add_adr_text(
-    #     doc_id="adr-002",
-    #     text="Decision: Use GitHub Actions to automate ADR validation and pull request workflows.",
-    #     metadata={"status": "Proposed", "category": "automation"}
+    #
+    # client.add_adr_file(
+    #     doc_id="diagram-001",
+    #     file="/Users/denisblanari/work/code/ADR-Copilot/adr/adr-supporting/ADR003/diagram.puml",
+    #     metadata={"status": "completed", "category": "diagram"}
     # )
-    client.add_adr_text(
-        doc_id="diagram-001",
-        text="",
-        metadata={"status": "In progress", "category": "diagram"}
-    )
-    similar = client.query_similar("How do we store ADR metadata?", top_k=2)
-    print("Similarity results:", similar)
+    #
+    # client.add_adr_file(
+    #     doc_id="POC-001",
+    #     file="/Users/denisblanari/work/code/ADR-Copilot/adr/adr-supporting/ADR003/Proof-of-Concept-Results.md",
+    #     metadata={"status": "completed", "category": "document"}
+    # )
+    #
+    # client.add_adr_file(
+    #     doc_id="Notes-001",
+    #     file="/Users/denisblanari/work/code/ADR-Copilot/adr/adr-supporting/ADR003/Meeting-Notes.md",
+    #     metadata={"status": "completed", "category": "notes"}
+    # )
+    #
+    # client.add_adr_file(
+    #     doc_id="Standards-References-001",
+    #     file="/Users/denisblanari/work/code/ADR-Copilot/adr/adr-supporting/ADR003/Example-Standards-References.txt",
+    #     metadata={"status": "completed", "category": "document"}
+    # )
 
-    similar = client.query_similar("How the car is working", top_k=2)
-    print("Similarity results for how car is working:", similar)
+    similar = client.query_similar("Payment Service notification Kafka", top_k=3)
 
-    graph = client.build_graph()
+    documents_str = "\n".join(f"{result['id']}: {result['document']}" for result in similar)
+    print("Combined documents:\n", documents_str)
+
+    print("Draft ADR -------:\n")
+
+    print(client.run_prompt("You are an expert software architect. Based on the provided supporting documentation, create a comprehensive Architecture Decision Record (ADR).\
+    Supporting documentation includes:\
+        - Exploration documents describing the problem, goals, and alternatives\
+        - Architecture diagrams (PlantUML or equivalent)\
+        - Proof-of-Concept (PoC) results that validate or invalidate options\
+        - Meeting notes capturing stakeholder discussions\
+        - Standards references (industry and internal)\
+    Documents:" + documents_str
+    ))
+
+    # graph = client.build_graph()
     # Demo invocation of compiled graph
-    print(graph.invoke({"input": "Test graph state"}))
+    # print(graph.invoke({"input": "Test graph state"}))
