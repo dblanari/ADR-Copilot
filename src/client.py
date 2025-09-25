@@ -137,11 +137,28 @@ class OpenAIClient:
         return app
 
     def run_prompt(self, prompt: str) -> str:
-        response = self.llm(prompt)
-        return response
+        print(f"Prompt length (chars): {len(prompt)}")
+        try:
+            response = self.llm(prompt)
+            return response
+        except Exception as e:
+            print(f"Error in run_prompt: {e}")
+            return f"Error: {e}"
+
+    def summarize_text(self, text: str) -> str:
+        """
+        Summarize a document using the LLM. Returns a concise summary.
+        """
+        summary_prompt = f"Summarize the following document in 2-4 sentences for ADR generation, focusing on key decisions, context, and outcomes.\nDocument:\n{text}"
+        return self.run_prompt(summary_prompt)
+
+    def chunk_text(self, text: str, max_chars: int = 3000) -> List[str]:
+        """
+        Split text into chunks of max_chars length, preserving boundaries.
+        """
+        return [text[i:i+max_chars] for i in range(0, len(text), max_chars)]
 
 if __name__ == "__main__":
-    # Example usage relying on environment variable
     client = OpenAIClient()
     # Embedding usage
     # emb_vec = client.embed_text_vector("Architecture Decision Records automation")
@@ -180,22 +197,41 @@ if __name__ == "__main__":
     #     metadata={"status": "completed", "category": "document"}
     # )
 
-    similar = client.query_similar("Payment Service notification Kafka", top_k=3)
+    similar = client.query_similar("Payment Service notification Kafka", top_k=5)
 
-    documents_str = "\n".join(f"{result['id']}: {result['document']}" for result in similar)
-    print("Combined documents:\n", documents_str)
+    # Summarize each document before building documents_str
+    summarized_docs = []
+    for result in similar:
+        summary = client.summarize_text(result['document'])
+        summarized_docs.append(f"{result['id']}: {summary}")
+    documents_str = "\n".join(summarized_docs)
+    # print("Combined summarized documents:\n", documents_str)
 
-    print("Draft ADR -------:\n")
 
-    print(client.run_prompt("You are an expert software architect. Based on the provided supporting documentation, create a comprehensive Architecture Decision Record (ADR).\
-    Supporting documentation includes:\
-        - Exploration documents describing the problem, goals, and alternatives\
-        - Architecture diagrams (PlantUML or equivalent)\
-        - Proof-of-Concept (PoC) results that validate or invalidate options\
-        - Meeting notes capturing stakeholder discussions\
-        - Standards references (industry and internal)\
-    Documents:" + documents_str
-    ))
+
+    final_prompt = (
+        "You are an expert software architect. Based on the provided supporting documentation, create a comprehensive Architecture Decision Record (ADR).\n"
+        "Supporting documentation included:\n"
+        # "Supporting documentation includes:\n"
+        # "- Exploration documents\n"
+        # "- Architecture diagrams\n"
+        # "- Proof-of-Concept\n"
+        # "- Meeting notes\n"
+        # "- Standards references\n"
+        # "Documents:\n"
+        + documents_str
+    )
+
+    print("Final prompt for ADR:\n" + final_prompt)
+
+    # Chunk the final prompt if too large
+    # prompt_chunks = client.chunk_text(final_prompt, max_chars=3500)
+    # adr_responses = []
+    # for chunk in prompt_chunks:
+    #     adr_responses.append(client.run_prompt(chunk))
+    # print("\n -=- chunk -=- ".join(adr_responses))
+
+    print("ADR Response:\n" + client.run_prompt(final_prompt))
 
     # graph = client.build_graph()
     # Demo invocation of compiled graph

@@ -1,0 +1,44 @@
+@startuml
+title ADR Assistant – POC Sequence (Extensible)
+
+actor User
+control "OpenAIClient\n(Service)" as Client
+database "Chroma\n(Vector DB)\n(Local persistence)" as Chroma
+boundary "OpenAI API\n(LLM + Embeddings)" as OpenAI
+
+== Ingest ADR Source Docs ==
+User -> Client: Add documents for ADR
+Client -> Client: Parse & chunk file(s)
+Client -> OpenAI: Create embeddings (e.g., text-embedding-3-large)
+OpenAI --> Client: Embedding vectors
+Client -> Chroma: Store embedding (add_adr_file: doc_id, chunks, metadata)
+Chroma --> Client: Acknowledge storage
+
+note right of Chroma
+- Runs locally (e.g., SQLite/DuckDB backend)
+- Stores vectors + metadata (doc_id, source, hash)
+- Suitable for offline/dev POC
+end note
+
+== Generate ADR ==
+User -> Client: Trigger generate ADR [topic/prompt]
+Client -> Chroma: Retrieve similar embeddings (query_similar: k=10, filters)
+Chroma --> Client: Return similar documents (top-k chunks + metadata)
+Client -> OpenAI: LLM call to compose ADR (responses.create)
+activate OpenAI
+OpenAI --> Client: Draft ADR (structured sections: Context, Decision, Consequences)
+deactivate OpenAI
+Client -> User: Return generated ADR based on context
+
+opt POC hardening
+Client -> OpenAI: Moderation check (optional)
+Client -> Client: Retry with backoff on 429/5xx
+Client -> Client: Cache recent prompts/results
+end opt
+
+
+legend left
+POC scope: Ingest, local Chroma, retrieval, ADR generation,
+basic logging, simple retries, optional moderation.
+endlegend
+@enduml

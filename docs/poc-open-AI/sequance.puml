@@ -1,0 +1,16 @@
+@startuml
+actor User
+participant "OpenAIClient" as Client
+participant "Chroma" as Chroma
+
+User -> Client: Add documents fo ADR
+Client -> Client: Read file content
+Client -> Chroma: Store embedding (add_adr_file)
+Chroma -> Client: Acknowledge storage
+
+User -> Client: Trigger generate ADR
+Client -> Chroma: Retrieve similar embeddings (query_similar)
+Chroma -> Client: Return similar documents
+
+Client -> User: Return generated ADR based on context
+@enduml
