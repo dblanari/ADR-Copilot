@@ -1,0 +1,38 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "User Interface" {
+    [BFF (iOS)]
+    [BFF (Android)]
+    [BFF (Web)]
+}
+
+package "Micro-kernel Architecture" {
+    node "Global Modules" {
+        [location]
+        [promotion]
+        [product]
+        [standard inventory]
+    }
+
+    node "Microkernel Core" {
+        [kernel]
+        [control]
+        [orders]
+    }
+
+    node "Local Modules" {
+        [location local]
+        [custom inventory]
+        [promotion local]
+        [delivery]
+    }
+}
+
+[BFF (iOS)] --> [kernel]
+[BFF (Android)] --> [kernel]
+[BFF (Web)] --> [kernel]
+
+[Global Modules] --> [kernel]
+[kernel] --> [Local Modules]
+@enduml

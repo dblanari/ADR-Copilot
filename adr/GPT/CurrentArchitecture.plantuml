@@ -1,0 +1,31 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "User Interface" {
+    [user interface]
+}
+
+package "Current Monolith" {
+    [product]
+    [location]
+    [purchase]
+    [promotions]
+    [orders]
+    [local overrides]
+}
+
+[user interface] --> [product]
+[user interface] --> [location]
+[user interface] --> [purchase]
+[user interface] --> [promotions]
+[user interface] --> [orders]
+[user interface] --> [local overrides]
+
+database "Master DB" as DB
+[product] --> DB
+[location] --> DB
+[purchase] --> DB
+[promotions] --> DB
+[orders] --> DB
+[local overrides] --> DB
+@enduml
