@@ -1,0 +1,18 @@
+
+@startuml
+title ADR Generation and Validation Assistant - System Diagram
+
+actor User
+rectangle "ADR Generation Assistant" {
+    [Input Parser & Classifier] --> [Knowledge Context Retrieval]
+    [Knowledge Context Retrieval] --> [ADR Generator (CustomGPT)]
+    [ADR Generator (CustomGPT)] --> [Validation Engine]
+    [Validation Engine] --> [ADR Markdown Output]
+    [ADR Markdown Output] --> [Export Module (.md/.doc)]
+}
+
+User --> [Input Parser & Classifier]
+
+@enduml
+
+
