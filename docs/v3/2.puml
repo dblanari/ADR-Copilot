@@ -1,0 +1,41 @@
+@startuml ADR_Templates
+skinparam shadowing false
+skinparam dpi 180
+skinparam wrapWidth 200
+
+title ADR Templates (Simple & Extended)
+
+package "ADR Templates" {
+  class "Simple ADR" as Simple {
+    + Title
+    + Status
+    + Context
+    + Decision
+    + Consequences
+  }
+
+  class "Extended ADR" as Extended {
+    + Title
+    + Status
+    + Context
+    + Motivation
+    + Considered Alternatives
+    + Decision Outcome
+    + Rationale (trade-offs)
+    + Consequences (short/long-term)
+    + Related Decisions
+    + References (Standards/Docs)
+  }
+}
+
+note bottom of Extended
+Use when: high impact, multiple alternatives,
+compliance/regulatory implications, multi-team coordination.
+end note
+
+note bottom of Simple
+Use when: low-medium impact, clear choice,
+limited alternatives, local scope.
+end note
+
+@enduml

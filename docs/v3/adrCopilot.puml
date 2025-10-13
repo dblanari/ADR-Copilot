@@ -1,0 +1,132 @@
+@startuml ADR_Copilot_Component_Diagram
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam wrapWidth 180
+skinparam dpi 180
+
+title ADR Copilot – System Components & Flow (Component View)
+
+actor "Architect / User" as User
+
+cloud "Project Knowledge Sources" as Sources {
+  [Exploration Docs]
+  [Architecture Diagrams]
+  [Proof-of-Concept Results]
+  [Meeting Notes]
+  [Standards & Policies]
+  [Other Documentation]
+}
+
+package "ADR Copilot (customGPT)" as Copilot {
+  [System Prompt / Flow Controller] as Flow
+  [Conversation Orchestrator] as Orchestrator
+  [ADR Template Manager] as TemplateMgr
+  [ADR Draft Generator] as DraftGen
+  [ADR Validator] as Validator
+  [Improvement Generator] as Improver
+}
+
+package "Context & Compliance Layer" as Ctx {
+  [Document Ingestion Service] as Ingest
+  database "Vector DB (Embeddings)" as VecDB
+  [Retrieval Service (RAG)] as RAG
+  [Standards / Policy Rules Engine] as Rules
+}
+
+package "Foundations" as Foundations {
+  database "Golden ADRs Repository" as Golden
+  database "ADR Repository (Git/Confluence)" as ADRRepo
+  [Access Control / AuthN-Z] as Auth
+  [Observability / Audit Trail] as Obs
+}
+
+rectangle "LLM (ChatGPT / Model Runtime)" as LLM
+
+' Relationships
+User --> Orchestrator : chat instructions / prompts
+Orchestrator --> Flow : enforce system prompt flow
+Flow --> TemplateMgr : request template recommendation
+Flow --> Ingest : request context build
+Ingest <-down- Sources : ingest & parse artifacts
+Ingest --> VecDB : embed & index
+Flow --> RAG : retrieve relevant chunks
+RAG --> VecDB : semantic search (kNN)
+Flow --> DraftGen : generate ADR draft (selected template)
+DraftGen --> LLM : prompt + retrieved context
+Flow --> Validator : structural + content validation
+Validator --> Golden : compare vs. exemplars
+Validator --> Rules : compliance checks
+Flow --> Improver : suggest missing docs & gaps
+Improver --> Rules : best-practice heuristics
+Flow --> ADRRepo : persist ADR (versioned)
+Orchestrator --> Auth : access checks
+Orchestrator --> Obs : log interactions / lineage
+
+' Notes
+note right of TemplateMgr
+- Simple ADR
+- Extended ADR
+- Versioned templates
+- Metadata & rules
+end note
+
+note right of Validator
+- Field completeness
+- Contradiction detection
+- Consistency w/ history
+- Incremental updates
+end note
+
+note bottom of Improver
+- Missing evidence (PoC, diagrams)
+- Weak rationale/trade-offs
+- Standard refs to cite
+end note
+
+@enduml
+
+
+@startuml ADR_Copilot_Sequence_Flow
+skinparam shadowing false
+skinparam wrapWidth 180
+skinparam dpi 180
+
+title ADR Copilot – Interaction Flow (Sequence View)
+
+actor User as U
+participant "Conversation Orchestrator" as CO
+participant "Flow Controller" as FC
+participant "Template Manager" as TM
+participant "Ingestion + RAG" as RAG
+participant "LLM Runtime" as LLM
+participant "Draft Generator" as DG
+participant "Validator" as VAL
+database "Golden ADRs" as GOLD
+database "ADR Repo" as ADRR
+participant "Improvement Generator" as IMP
+
+U -> CO : 1) Start ADR session (intent)
+CO -> FC : Initialize flow via system prompt
+FC -> TM : 2) Recommend template (Simple/Extended)
+TM --> FC : Template selection + rationale
+FC -> U : Indicate template; request docs (Exploration, Diagrams, PoC, Notes, Standards)
+U -> CO : 3) Provide/attach documentation
+CO -> RAG : Ingest + retrieve context (embeddings)
+RAG --> CO : Relevant context chunks
+CO -> DG : 4) Draft ADR (selected template)
+DG -> LLM : Compose ADR with context
+LLM --> DG : Draft sections
+DG --> CO : Draft v1
+CO -> VAL : 5) Validate vs Golden ADRs
+VAL -> GOLD : Fetch exemplars & patterns
+GOLD --> VAL : Exemplars
+VAL --> CO : Gaps, violations, deltas
+CO -> DG : 6) Incremental improvements (apply deltas)
+DG -> DG : Patch ADR (v1 -> vN)
+CO -> IMP : 7) Suggest missing docs/improvements
+IMP --> CO : Improvement checklist
+CO -> ADRR : 8) Persist ADR (versioned)
+CO -> U : 9) Share ADR + improvement list
+
+@enduml
