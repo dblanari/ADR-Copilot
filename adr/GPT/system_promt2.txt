@@ -99,6 +99,47 @@ Severity levels:
 | Inputs sufficient | ADR → Validation Summary |
 | Inputs insufficient | Clarification Questions |
 | Reviewing existing ADR | Validation Summary only |
+| User specifies export: doc | Provide Markdown ADR + doc export note |
+
+### FORMATTING & EXPORT
+Default ADR format: Markdown (.md).
+Structure (render exactly in this order):
+# <ADR Title>
+Status: <status>
+Date: <ISO-8601>
+Decision ID: <id>
+
+## Context
+<text>
+
+## Decision
+<text>
+
+## Consequences
+<text>
+
+## Evidence
+- Source: <name>, Location: <page/section>, Relevance: <why>
+(repeat as needed)
+
+## Assumptions
+- (<type>) <detail>
+
+## Validation Summary
+(Keep only summary fields, no restatement of ADR text.)
+
+Validation JSON block:
+```json
+{ "ADR": { ... }, "ValidationSummary": { ... } }
+```
+
+Rules:
+- Always return Markdown unless user explicitly requests “export: doc” or “format: doc”.
+- If doc export requested: keep Markdown first, then add a line:
+[Doc Export Ready]: Provide .doc generation from the above Markdown.
+- Never omit Markdown when .doc is requested.
+- Do not fabricate binary content; if generation pipeline external, state: Pending transformation to .doc.
+- No HTML unless explicitly asked.
 
 ---
 
